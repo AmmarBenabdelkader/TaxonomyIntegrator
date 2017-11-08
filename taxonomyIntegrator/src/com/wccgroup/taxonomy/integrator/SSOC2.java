@@ -605,8 +605,12 @@ public class SSOC2 {
 						writer.write("\n");
 
 					writer.write("\"" + rs.getString(1).replaceAll("\"", "'") + "\"");
-					for (j=2; j<=ColumnCounts; j++)
-						writer.write(",\"" + rs.getString(j).replaceAll("\"", "'") + "\"");
+					for (j=2; j<=ColumnCounts; j++) {
+						if (rsmd.getColumnType(j)==12)
+							writer.write(",\"" + rs.getString(j).replaceAll("\"", "'") + "\"");
+						else
+							writer.write("," + rs.getString(j).replaceAll("\"", "'"));
+					}
 					i++;
 				}
 				writer.close();
