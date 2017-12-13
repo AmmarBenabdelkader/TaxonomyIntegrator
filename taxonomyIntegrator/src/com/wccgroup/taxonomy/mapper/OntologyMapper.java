@@ -37,7 +37,6 @@ public class OntologyMapper {
 		PASS = "";
 		
 
-		System.out.println("\t*** Mapping Taxonomy-Ontology - ****");
 /*		resetOntologydata("onet");
 		jobTitleMapper("http://demos.savannah.wcc.nl:14080/ontology/v1", "onet", "SELECT onetsoc_code, title FROM onet.occupation_data", "occupation", 0, 10000);  // ONET occupations
 		jobTitleMapper("http://demos.savannah.wcc.nl:14080/ontology/v1", "onet", "SELECT distinct onetsoc_code, reported_job_title FROM onet.sample_of_reported_titles where reported_job_title not in (select jobtitle from onet.ontology_occupation)", "reported job title", 0, 10000);  // ONET Reported job titles

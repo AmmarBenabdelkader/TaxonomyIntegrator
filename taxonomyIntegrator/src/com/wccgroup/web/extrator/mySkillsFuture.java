@@ -34,76 +34,70 @@ public class mySkillsFuture {
 	}
 	public static void mySkillsMapper(String baseURI, String fullRUI) throws SQLException, ClassNotFoundException, IOException
 	{
-		/*		String JDBC_DRIVER = "com.mysql.jdbc.Driver";
+		String JDBC_DRIVER = "com.mysql.jdbc.Driver";
 		String DB_URL = "jdbc:mysql://localhost/onet?useUnicode=true&characterEncoding=utf-8";
 		String USER = "root";
 		String PASS = "";
 		Class.forName(JDBC_DRIVER);
 		Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
 		Statement stmt = conn.createStatement();
-		 */
-			File file = new File("C:\\data\\singapore\\courses\\myFutureSkills.html");
-			FileReader fileReader = new FileReader(file);
-			BufferedReader in = new BufferedReader(fileReader);
-			StringBuffer stringBuffer = new StringBuffer();
-/*			String line;
-			while ((line = bufferedReader.readLine()) != null) {
-				stringBuffer.append(line);
-				stringBuffer.append("\n");
-			}
-			fileReader.close();
-			System.out.println("Contents of file:");
-			System.out.println(stringBuffer.toString());
-*/		String inputLine;
-		int i = 1;
-		String title,overviewLink, code, counts, contentLink,major;
-		title=major=null;
+
+		File file = new File("C:\\data\\singapore\\courses\\myFutureSkills.html");
+		FileReader fileReader = new FileReader(file);
+		BufferedReader in = new BufferedReader(fileReader);
+		StringBuffer query = new StringBuffer();
+		String inputLine;
+		String name,link, code, inst,sector,fee;
+		name=inst=sector=fee=null;
 		int j=1;
 		Map<String, String> professions = new HashMap<String, String>();
-		int idx1=0;
 		descipline=new HashMap<String,String>(); 
+		query.append("insert into taxonomies.training_course (code,name,link, institution, sector, fee) values ");
 		while ((inputLine = in.readLine()) != null) {
 			if (inputLine.contains("<div data-bind=\"attr: { title: courseTitle }\"") && inputLine.contains("title=\"")) {
-				System.out.println(j + "- " + inputLine.substring(inputLine.indexOf("title=\"") + 7, inputLine.indexOf("\">")));
+				query = new StringBuffer();
+				query.append("insert into taxonomies.training_course (code,name,link, institution, sector, fee) values ");
+				code=name=link=inst=sector=fee=null;
+				name = inputLine.substring(inputLine.indexOf("title=\"") + 7, inputLine.indexOf("\">"));
+				System.out.println(j + "- " + name);
 				j++;
 				inputLine = in.readLine();
 				//System.out.println("Technical Skills and Competencies\n");
 				while (!inputLine.contains("<div data-bind=\"attr: { title: courseTitle }\"")) {
 					if (inputLine.contains("<a href=\"")) {
-						overviewLink = baseURI + inputLine.substring(inputLine.indexOf("<a href=\"") + 9, inputLine.indexOf("\" target="));
-						System.out.println("\t" + overviewLink);
+						link = baseURI + inputLine.substring(inputLine.indexOf("<a href=\"") + 9, inputLine.indexOf("\" target="));
+						System.out.println("\t" + link);
 					}
 					if (inputLine.contains("EXT_Course_Ref_Nos[0]")) {
 						code = inputLine.substring(inputLine.indexOf("EXT_Course_Ref_Nos[0]") + 23, inputLine.indexOf("</span>"));
 						System.out.println("\t" + code);
 					}
 					if (inputLine.contains("title : organisationNameTitles[0]")) {
-						code = inputLine.substring(inputLine.indexOf("\">") + 2, inputLine.indexOf("</a>"));
-						System.out.println("\t" + code);
+						inst = inputLine.substring(inputLine.indexOf("\">") + 2, inputLine.indexOf("</a>"));
+						System.out.println("\t" + inst);
 					}
 					if (inputLine.contains("attr:{title: areaOfTrainingsFull}")) {
-						code = inputLine.substring(inputLine.indexOf("\">") + 2, inputLine.indexOf("</div>"));
-						System.out.println("\t" + code);
+						sector = inputLine.substring(inputLine.indexOf("\">") + 2, inputLine.indexOf("</div>"));
+						System.out.println("\t" + sector);
 					}
 					if (inputLine.contains("text: Tol_Cost_of_Trn_Per_Trainee")) {
-						code = inputLine.substring(inputLine.indexOf("\">") + 2, inputLine.indexOf("</span>"));
-						System.out.println("\t$" + code);
+						fee = inputLine.substring(inputLine.indexOf("\">") + 2, inputLine.indexOf("</span>"));
+						System.out.println("\t$" + fee);
 					}
 					inputLine = in.readLine();
 
 				}  
-				//inputLine = in.readLine();
+				query.append("(\"" + code.replaceAll("\"", "'") + "\",\""   + name.replaceAll("\"", "'") + "\",\""  + link.replaceAll("\"", "'") + "\",\""  + inst.replaceAll("\"", "'") + "\",\""  + sector.replaceAll("\"", "'") + "\","  + (fee==null?"":fee.replaceAll(",", "")) + "),");
+				System.out.println(query.toString());
+				String str = query.toString();
+				stmt.executeUpdate(str.substring(0, str.length()-1));
 
 			}
 
-			i++;
 		}
+		
 
 		in.close();
-		String name, desc;
-		Boolean ch=false;
-
-		int k = 1;
 	}
 	public static void extractDesc(BufferedReader in, String major, int k) throws SQLException, ClassNotFoundException, IOException
 	{
@@ -141,7 +135,7 @@ public class mySkillsFuture {
 					else
 						System.out.println("\t" + inputLine.substring(inputLine.indexOf(">")+1, inputLine.indexOf("</")));
 				}
-					
+
 
 				inputLine = in.readLine();
 			}					
