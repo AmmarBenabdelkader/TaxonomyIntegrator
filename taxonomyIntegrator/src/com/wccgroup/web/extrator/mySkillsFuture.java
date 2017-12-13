@@ -25,7 +25,7 @@ public class mySkillsFuture {
 	static HashMap<String,String> descipline=new HashMap<String,String>(); 
 	public static void main(String[] args) throws Exception {
 
-		String baseURI="https://www.myskillsfuture.s";
+		String baseURI="https://www.myskillsfuture.sg";
 		String fullRUI="https://www.myskillsfuture.sg/content/portal/en/training-exchange/course-directory.html?fq=Course_Supp_Period_To_1%3A%5B2017-12-12T00%3A00%3A00Z%20TO%20*%5D&fq=IsDisplaySFC%3Atrue&q=*%3A*&sort=Course_Title_facet%20asc%2CCourse_SEO_Name%20asc";
 		mySkillsMapper(baseURI, fullRUI);
 

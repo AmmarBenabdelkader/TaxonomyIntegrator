@@ -48,8 +48,9 @@ public class OntologyMapper {
 		
 		deduplicateOntologydata("onet");
 */		
-		resetOntologydata_competence("onet");
-		competencyMapper("http://demos.savannah.wcc.nl:14080/ontology/v1", "onet", "SELECT distinct onetsoc_code, t2_example FROM onet.tools_and_technology where t2_type='Tools' and  t2_example not in (select jobtitle from onet.ontology_competence)", "Tools", 0, 10000);  // ONET Tools
+		//resetOntologydata_competence("onet");
+		//competencyMapper("http://demos.savannah.wcc.nl:14080/ontology/v1", "onet", "SELECT distinct onetsoc_code, t2_example FROM onet.tools_and_technology where t2_type='Tools' and  t2_example not in (select jobtitle from onet.ontology_competence)", "Tools", 0, 10000);  // ONET Tools
+		competencyMapper_course("https://api-demo.wcc-group.com/semanticsearch/v1/competences/text?text=", "taxonomies", "SELECT distinct code, name FROM taxonomies.training_course", "training_course", 0, 100);  // ONET Tools
 		
 		System.out.println("\nTotal duration: " + (new Date().getTime() - date.getTime())/1000 + "s");
 
@@ -412,6 +413,154 @@ public class OntologyMapper {
 				 System.out.println("\tGenerating Relations: " + stmt.executeUpdate(links.toString().substring(0, links.length()-1)) + " Competence Synonyms");					
 
 			 conn.close();
+			 stmt.close();
+		
+
+	}
+
+	/* Reads the course titles from a taxonomy and mapps them to ontology competence/abstract_competence */
+	public static void competencyMapper_course(String baseURL, String DBname, String jobsQuery, String conceptType, int offset, int limit) throws SQLException, ClassNotFoundException
+	{
+		Class.forName(JDBC_DRIVER);
+		Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
+		Statement stmt = conn.createStatement();
+		HashMap<String,String> fGroups=new HashMap<String,String>(); 
+		//HashMap<String,String> functions=new HashMap<String,String>(); 
+		HashMap<String,String> competences=new HashMap<String,String>(); 
+		HashMap<String,String> functionLabels=new HashMap<String,String>(); 
+		HashMap<String,String> functionGroups=new HashMap<String,String>(); 
+			StringBuilder links = new StringBuilder();
+			StringBuilder actonomySynonyms = new StringBuilder();
+			StringBuilder function_Groups = new StringBuilder();
+			function_Groups.append("insert into " + DBname + ".competence_groups values ");
+			actonomySynonyms.append("insert into " + DBname + ".competence_synonyms values ");
+			links.append("insert into " + DBname + ".ontology_competence values ");
+		ResultSet rs = stmt.executeQuery(jobsQuery);
+		int counter = 1;
+		int j = 0;
+		System.out.print("\nExtracting ontology data: " + DBname.toUpperCase() + " " + conceptType + "\n\t" );
+		while (rs.next() && counter<=limit) {
+			while (counter<offset) {
+				rs.next();
+				counter++;
+			}
+			
+			String file = baseURL + rs.getString(2).replaceAll(" ", "%20").replaceAll("/", "%20").trim();
+			System.out.println(file);
+			//System.out.println(counter + ": " + rs.getString(2) + (" (id: " + rs.getString(1)));
+			if (counter%50==0)
+				System.out.print(counter + "," );
+			if (counter%500==0)
+				System.out.print("\n\t");
+			StringBuilder stringBuilder = new StringBuilder();
+			try
+			{
+			URL url = new URL(file);
+			URLConnection yc = url.openConnection();
+			BufferedReader in;
+				in = new BufferedReader(new InputStreamReader(
+					yc.getInputStream()));
+			String line;
+			//stringBuilder.append("{\n\"nodes\":\n");
+			while ((line = in.readLine()) != null) {
+				stringBuilder.append(line + '\n');
+			}
+			//stringBuilder.append("\n}");
+			in.close();
+			}
+			catch (IOException e1)
+			{
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+
+			System.out.println(stringBuilder);
+			/*		if (1==1)
+			return;
+			 */		try {
+				 JSONParser parser = new JSONParser();
+				 Object obj;
+				 obj = parser.parse(stringBuilder.toString());
+				 JSONObject jsonObject = (JSONObject) obj;
+
+
+				 JSONArray nodes = (JSONArray) jsonObject.get("results");
+				 JSONObject object1;
+				 //System.out.println("\nA- Creating right part");
+				 if (nodes==null) 
+					 return;
+				 for (int i = 0; i < nodes.size(); i++) {
+					 object1 = (JSONObject)nodes.get(i);
+					 System.out.println("\t" + object1.get("id").toString() + ":" + object1.get("name").toString() + "\tscore:" + object1.get("score").toString());
+					 /*if(object1.get("category").toString().equalsIgnoreCase("COMPETENCE") || object1.get("category").toString().equalsIgnoreCase("ABSTRACT_COMPETENCE")) {
+						 competences.put(object1.get("id").toString(), object1.get("label").toString());
+						 links.append("(\"" + rs.getString(2) + "\", '" + object1.get("id") + "', " + (int) (Float.parseFloat(object1.get("score").toString())*100) + ",'" + rs.getString(1) + "','" + conceptType + "'),");
+					 }
+					 				 else {
+					 if (object1.get("category").toString().equalsIgnoreCase("COMPETENCE")) {
+						 competences.put(object1.get("id").toString(), object1.get("label").toString() );
+						 links.append("('" + object1.get("code") + "', '" + object1.get("id") + "', " + (int) (Float.parseFloat(object1.get("score").toString())*100) + "),");
+					 }
+					 else {
+						 others.append(object1.get("id") + "\t" + object1.get("label") + "\n");
+						 links.append("('" + object1.get("code") + "', '" + object1.get("id") + "', " + (int) (Float.parseFloat(object1.get("score").toString())*100) + "),");
+					 }
+				 }
+					  */
+
+				 }
+			 }
+			 catch (ParseException e)
+			 {
+				 e.printStackTrace();
+			 }
+			 counter++;
+		}
+
+/*
+				 //Actonomy Function Groups
+				 StringBuilder query = new StringBuilder();
+				 query.append("insert into " + DBname + ".actonomy_terms (code, name, parent) values ");
+				 query.append("('CompetenceGroup','Competence Groups', null)");
+				 for(Map.Entry group:fGroups.entrySet()) {  
+					 query.append(",('" + group.getKey() + "',\"" + group.getValue() + "\",'CompetenceGroup')");
+				 }  
+				 System.out.println("\n\tGenerating Actonomy Terms: " + stmt.executeUpdate(query.toString()) + " Competence Groups");
+				 //System.out.println("\tGenerating Actonomy Terms: \n" + query.toString());
+
+				 //Actonomy Competence
+				 query = new StringBuilder();
+				 query.append("insert into " + DBname + ".actonomy_terms (code, name, parent) values ");
+				 query.append("('Competence','Competence',null)");
+				 for(Map.Entry competence:competences.entrySet()) {  
+					 query.append(",('" + competence.getKey() + "',\"" + competence.getValue() + "\",'Competence')");
+				 }  
+				 System.out.println("\tGenerating Actonomy Terms: " + stmt.executeUpdate(query.toString()) + " Competencies");
+				 //System.out.println("\tGenerating Actonomy Terms: \n" + query.toString());
+
+
+				 // Links from functions to functionGroups
+				 //System.out.println("Deleting Relations: " + stmt.executeUpdate("delete from ssoc2.function_groups") + " function_groups deleted");
+				 query = new StringBuilder();
+				 query.append("insert into " + DBname + ".competence_groups values ");
+				 for(Map.Entry functionGroup:functionGroups.entrySet()) {  
+					 String key1 = functionGroup.getKey().toString().substring(0, functionGroup.getKey().toString().indexOf("_#_"));
+					 String key2 = functionGroup.getKey().toString().substring(functionGroup.getKey().toString().indexOf("_#_")+3,functionGroup.getKey().toString().length());
+					 query.append("('" + key1 + "','" + key2 + "'),");
+				 }  
+				 System.out.println("\tGenerating Relations: " + stmt.executeUpdate(query.toString().substring(0, query.length()-1)) + " Competence Groups Links");					
+				 //System.out.println("\tGenerating Relations: \n" + query.toString().substring(0, query.length()-1));					
+
+				 //System.out.println("Deleting Relations: " + stmt.executeUpdate("delete from " + DBname + ".actonomy_synonyms") + " actonomy_synonyms deleted");
+				 System.out.println("\tGenerating Relations: " + stmt.executeUpdate(actonomySynonyms.toString().substring(0, actonomySynonyms.length()-1)) + " Competence Synonyms");					
+				 //System.out.println("\tGenerating Relations: \n" + actonomySynonyms.toString().substring(0, actonomySynonyms.length()-1));					
+
+				 //System.out.println(links);
+				 //System.out.println("Deleting Relations: " + stmt.executeUpdate("delete from " + DBname + ".ontology_occupation") + " ssoc_actonomy_occupation deleted");
+				 //System.out.println("\tGenerating Actonomy Synonyms: \n" + links.toString().substring(0, links.length()-1));					
+				 System.out.println("\tGenerating Relations: " + stmt.executeUpdate(links.toString().substring(0, links.length()-1)) + " Competence Synonyms");					
+
+*/			 conn.close();
 			 stmt.close();
 		
 

@@ -43,13 +43,14 @@ public class SSOC {
 		//mergeJobs();
 		//fixLevel5Competence();
 		//distributeSkills();
-		occupationActonomyInput("\\\\savannah\\home\\abenabdelkader\\Documents\\projects\\Singapore\\data\\occupationIndex\\");
+		//occupationActonomyInput("\\\\savannah\\home\\abenabdelkader\\Documents\\projects\\Singapore\\data\\occupationIndex\\");
+		competenceActonomyInput("c:\\data\\Singapore\\competenceIndex\\");
 		//generateActonomyInput_esco("\\\\savannah\\home\\abenabdelkader\\Documents\\projects\\Singapore\\OntologyInput\\");
 		//removeFilesExtension("C:\\data\\CVs\\Jobs\\");
 		//relatedOccupation_skills();   // generate related occupations based on common ESCO skills
 
 		
-/**/
+/*
 		String path="\\\\savannah\\home\\abenabdelkader\\Documents\\projects\\TM\\TMP\\SSOC\\";
 		List<Taxonomy> taxonomies = readTaxonomyPara("SSOC.parameters"); 
 		System.out.println("\nGenerating SSOC CSV data for TM");
@@ -59,7 +60,7 @@ public class SSOC {
 		generateRelationsWithTwoScoresData(taxonomies, path);
 		generateRelationsData(taxonomies, path);
 
-
+*/
 		System.out.println("\nTotal duration: " + (new Date().getTime() - date.getTime())/1000 + "s");
 
 
@@ -123,6 +124,73 @@ public class SSOC {
 			}
 			document.append("\t\t</Competencies>\n");
 			document.append("\t</Occupation>\n");
+			rs2.close();
+			writer.write(document.toString());
+			writer.close();
+
+		}
+		stmt.close();
+		conn.close();
+
+	}
+
+	public static void competenceActonomyInput(String outputFile) throws ClassNotFoundException, SQLException, IOException
+	{
+		Connection conn = null;
+		Statement stmt = null;
+		Statement stmt2 = null;
+		Class.forName(JDBC_DRIVER);
+		conn = DriverManager.getConnection(DB_URL, USER, PASS);
+		stmt = conn.createStatement();
+		stmt2 = conn.createStatement();
+		Statement stmt3 = conn.createStatement();
+		StringBuilder document;
+		BufferedWriter writer;
+
+
+		System.out.println( "Actonomy Input generation: ");
+		int i = 1;
+		//*** Case 1 *** SSOC occupations which are mapped to ESCO
+		//String query= "SELECT distinct code, name, description, 'SSOC' FROM ssoc.occupation where type='SSOC Original' and description is not null";
+		//*** Case 2 *** SSOC occupations which are not mapped to ESCO
+		String query= "SELECT distinct code, name, description, type, 'ESCO' source FROM escov1.skills limit 100";
+		ResultSet rs = stmt.executeQuery(query);
+		for (; rs.next();)
+		{
+			document = new StringBuilder();
+			document.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+			System.out.println( "\t-" + (i++) + ":\t" + rs.getString(1));
+			writer = new BufferedWriter(new FileWriter(new File(outputFile + rs.getString(1))));
+			document.append("\t<Competence lang=\"EN\">\n");
+			document.append("\t\t<code>" + rs.getString(1) + "</code>\n");
+			document.append("\t\t<Name>" + rs.getString(2).replaceAll("&", "&amp;") + "</Name>\n");
+			document.append("\t\t<skill_type>" + rs.getString(4) + "</skill_type>\n");
+			document.append("\t\t<Source>" + rs.getString(5) + "</Source>\n");
+			if (rs.getString(3)!=null)
+				document.append("\t\t<Description>" + rs.getString(3).replaceAll("&", "&amp;") + "</Description>\n");
+
+			query= "SELECT distinct altLabel FROM escov1.skill_altLabels where code='" + rs.getString(1) + "' order by altlabel";
+			ResultSet rs2 = stmt2.executeQuery(query);
+			for (; rs2.next();)
+			{
+				document.append("\t\t<AltTitle>" + rs2.getString(1).replaceAll("&", "&amp;") + "</AltTitle>\n");
+			}
+			query= "SELECT distinct b.code, b.name, a.type, relationshipType, b.description, 'SSOC' source, a.skill_level score FROM lssoc.occupation_skills_esco a, lssoc.occupation b where a.ssoc_code=b.code and a.relationshipType='essential' and a.skill ='" + rs.getString(1) + "' order by score, name";
+			rs2 = stmt2.executeQuery(query);
+			document.append("\t\t<occupations>\n");
+			for (; rs2.next();)
+			{
+				document.append("\t\t\t<Occupation>\n");
+				document.append("\t\t\t\t<Title>" + rs2.getString(2).replaceAll("&", "&amp;") + "</Title>\n");
+				document.append("\t\t\t\t<SSOC_code>" + rs2.getString(1) + "</SSOC_code>\n");
+				//document.append("\t\t\t\t<skill_type>" + rs.getString(4) + "</skill_type>\n");
+				document.append("\t\t\t\t<relation_type>" + rs2.getString(4) + "</relation_type>\n");
+				document.append("\t\t\t\t<Description>" + (rs2.getString(5)!=null?rs2.getString(5).replaceAll("&", "&amp;"):"") + "</Description>\n");
+				document.append("\t\t\t\t<Source>" + rs2.getString(6) + "</Source>\n");
+				document.append("\t\t\t</Occupation>\n");
+			}
+			document.append("\t\t</occupations>\n");
+			document.append("\t</Competence>\n");
 			rs2.close();
 			writer.write(document.toString());
 			writer.close();
