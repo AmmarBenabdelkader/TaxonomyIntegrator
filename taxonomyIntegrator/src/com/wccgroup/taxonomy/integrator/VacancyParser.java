@@ -194,7 +194,7 @@ public class VacancyParser
 		String score="";
 		try
 		{
-		URL url = new URL("http://demos.savannah.wcc.nl:14080/semanticsearch/v1/occupationtitles/text?text=" + title.replaceAll(" ", "%20").trim() + "&sort=sort");
+		URL url = new URL("ccoccupationtitles/text?text=" + title.replaceAll(" ", "%20").trim() + "&sort=sort");
 		System.out.println(url.toString());
 		URLConnection yc = url.openConnection();
 		BufferedReader in;

@@ -43,7 +43,7 @@ public class SSOC {
 		//mergeJobs();
 		//fixLevel5Competence();
 		//distributeSkills();
-		//occupationActonomyInput("\\\\savannah\\home\\abenabdelkader\\Documents\\projects\\Singapore\\data\\occupationIndex\\");
+		occupationActonomyInput("\\\\savannah\\home\\abenabdelkader\\Documents\\projects\\Singapore\\data\\occupationIndex\\");
 		//generateActonomyInput_esco("\\\\savannah\\home\\abenabdelkader\\Documents\\projects\\Singapore\\OntologyInput\\");
 		//removeFilesExtension("C:\\data\\CVs\\Jobs\\");
 		//relatedOccupation_skills();   // generate related occupations based on common ESCO skills
@@ -101,7 +101,7 @@ public class SSOC {
 			if (rs.getString(3)!=null)
 				document.append("\t\t<Description>" + rs.getString(3).replaceAll("&", "&amp;") + "</Description>\n");
 
-			query= "SELECT distinct altLabel FROM escov1.occupation_altLabels a,  ssoc_temp.esco_ssoc_mapping b where a.code=b.esco_code and b.ssoc_code='" + rs.getString(1) + "'";
+			query= "SELECT distinct altLabel FROM lssoc.occupation_AltTitles where code='" + rs.getString(1) + "' order by altlabel";
 			ResultSet rs2 = stmt2.executeQuery(query);
 			for (; rs2.next();)
 			{
@@ -389,6 +389,9 @@ public class SSOC {
 				{"career_changer_matrix_cpy","create", "select * from lssoc.career_changer_matrix"},
 				{"career_changer_matrix","update","update lssoc.career_changer_matrix set score2=(select score1 from lssoc.career_changer_matrix_cpy b where lssoc.career_changer_matrix.related_ssoc_code=b.ssoc_code and lssoc.career_changer_matrix.ssoc_code=b.related_ssoc_code)"},
 				{"career_changer_matrix","update","update lssoc.career_changer_matrix set score2=0 where score2 is null"},
+				
+				{"occupation_AltTitles","create", "SELECT distinct b.code, a.altlabel FROM escov1.occupation_altLabels a, lssoc.occupation b, ssoc_temp.esco_ssoc_mapping c where a.code=c.esco_code and b.code=c.ssoc_code order by b.code, a.altlabel"},
+				{"occupation_AltTitles","update","SELECT distinct occupation, AltTitle FROM lssoc.occupation_alttitles_extra"},
 				//{"career_changer_matrix","update","update lssoc.career_changer_matrix set type='horizontal' where left(ssoc_code,3)=left(related_ssoc_code,3)"},
 				//{"career_changer_matrix","update","update lssoc.career_changer_matrix set type='vertical-down' where left(ssoc_code,3)<left(related_ssoc_code,3)"},
 				//{"career_changer_matrix","update","update lssoc.career_changer_matrix set type='vertical-up' where left(ssoc_code,3)>left(related_ssoc_code,3)"},
