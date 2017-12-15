@@ -50,7 +50,8 @@ public class OntologyMapper {
 */		
 		//resetOntologydata_competence("onet");
 		//competencyMapper("http://demos.savannah.wcc.nl:14080/ontology/v1", "onet", "SELECT distinct onetsoc_code, t2_example FROM onet.tools_and_technology where t2_type='Tools' and  t2_example not in (select jobtitle from onet.ontology_competence)", "Tools", 0, 10000);  // ONET Tools
-		competencyMapper_course("https://api-demo.wcc-group.com/semanticsearch/v1/competences/text?text=", "taxonomies", "SELECT distinct code, name FROM taxonomies.training_course", "training_course");  // ONET Tools
+		//competencyMapper_course("https://api-demo.wcc-group.com/semanticsearch/v1/competences/text?text=", "taxonomies", "SELECT distinct code, name FROM taxonomies.training_course", "training_course");  // ONET Tools
+		competencyMapper_course("https://api-demo.wcc-group.com/semanticsearch/v1/competences/text?text=", "escov1", "SELECT distinct code, name FROM escov1.skills", "skills");  // ONET Tools
 		
 		System.out.println("\nTotal duration: " + (new Date().getTime() - date.getTime())/1000 + "s");
 

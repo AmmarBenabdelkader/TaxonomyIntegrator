@@ -44,7 +44,8 @@ public class SSOC {
 		//fixLevel5Competence();
 		//distributeSkills();
 		//occupationActonomyInput("\\\\savannah\\home\\abenabdelkader\\Documents\\projects\\Singapore\\data\\occupationIndex\\");
-		competenceActonomyInput("c:\\data\\Singapore\\competenceIndex\\");
+		//competenceActonomyInput("c:\\data\\Singapore\\competenceIndex\\");
+		trainingActonomyInput("c:\\data\\Singapore\\TrainingIndex\\");
 		//generateActonomyInput_esco("\\\\savannah\\home\\abenabdelkader\\Documents\\projects\\Singapore\\OntologyInput\\");
 		//removeFilesExtension("C:\\data\\CVs\\Jobs\\");
 		//relatedOccupation_skills();   // generate related occupations based on common ESCO skills
@@ -153,14 +154,15 @@ public class SSOC {
 		//*** Case 1 *** SSOC occupations which are mapped to ESCO
 		//String query= "SELECT distinct code, name, description, 'SSOC' FROM ssoc.occupation where type='SSOC Original' and description is not null";
 		//*** Case 2 *** SSOC occupations which are not mapped to ESCO
-		String query= "SELECT distinct code, name, description, type, 'ESCO' source FROM escov1.skills limit 100";
+		String query= "SELECT distinct code, name, description, type, 'ESCO' source FROM escov1.skills limit 500";
 		ResultSet rs = stmt.executeQuery(query);
 		for (; rs.next();)
 		{
 			document = new StringBuilder();
 			document.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-			System.out.println( "\t-" + (i++) + ":\t" + rs.getString(1));
-			writer = new BufferedWriter(new FileWriter(new File(outputFile + rs.getString(1))));
+			System.out.println( "\t" + (i++) + "-\t" + rs.getString(2) + ": " + rs.getString(1));
+			//writer = new BufferedWriter(new FileWriter(new File(outputFile + rs.getString(1))));
+			writer = new BufferedWriter(new FileWriter(new File(outputFile + rs.getString(2))));
 			document.append("\t<Competence lang=\"EN\">\n");
 			document.append("\t\t<code>" + rs.getString(1) + "</code>\n");
 			document.append("\t\t<Name>" + rs.getString(2).replaceAll("&", "&amp;") + "</Name>\n");
@@ -192,6 +194,49 @@ public class SSOC {
 			document.append("\t\t</occupations>\n");
 			document.append("\t</Competence>\n");
 			rs2.close();
+			writer.write(document.toString());
+			writer.close();
+
+		}
+		stmt.close();
+		conn.close();
+
+	}
+
+	public static void trainingActonomyInput(String outputFile) throws ClassNotFoundException, SQLException, IOException
+	{
+		Connection conn = null;
+		Statement stmt = null;
+		Class.forName(JDBC_DRIVER);
+		conn = DriverManager.getConnection(DB_URL, USER, PASS);
+		stmt = conn.createStatement();
+		StringBuilder document;
+		BufferedWriter writer;
+
+
+		System.out.println( "Actonomy Input generation: ");
+		int i = 1;
+		//*** Case 1 *** SSOC occupations which are mapped to ESCO
+		//String query= "SELECT distinct code, name, description, 'SSOC' FROM ssoc.occupation where type='SSOC Original' and description is not null";
+		//*** Case 2 *** SSOC occupations which are not mapped to ESCO
+		String query= "SELECT Course_Code, Course_Name, course_Objectives, course_Content, Sector, 'SkillsFuture' source FROM taxonomies.training_course2 limit 5";
+		ResultSet rs = stmt.executeQuery(query);
+		for (; rs.next();)
+		{
+			document = new StringBuilder();
+			document.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+			System.out.println( "\t" + (i++) + "-\t" + rs.getString(2) + ": " + rs.getString(1));
+			writer = new BufferedWriter(new FileWriter(new File(outputFile + rs.getString(1))));
+			//writer = new BufferedWriter(new FileWriter(new File(outputFile + rs.getString(2))));
+			document.append("\t<Training lang=\"EN\">\n");
+			document.append("\t\t<code>" + rs.getString(1) + "</code>\n");
+			document.append("\t\t<Name>" + rs.getString(2).replaceAll("&", "&amp;") + "</Name>\n");
+			document.append("\t\t<objectives>" + rs.getString(3) + "</objectives>\n");
+			document.append("\t\t<content>" + rs.getString(4) + "</content>\n");
+			document.append("\t\t<sector>" + rs.getString(5) + "</sector>\n");
+			document.append("\t\t<Source>" + rs.getString(6) + "</Source>\n");
+
+			document.append("\t</Training>\n");
 			writer.write(document.toString());
 			writer.close();
 
