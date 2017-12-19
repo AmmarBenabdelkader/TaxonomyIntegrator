@@ -42,7 +42,8 @@ public class mySkillsFuture {
 		Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
 		Statement stmt = conn.createStatement();
 
-		File file = new File("C:\\data\\singapore\\courses\\myFutureSkills.html");
+		File file = new File("C:\\data\\singapore\\courses\\SGTrainCourse.html");
+		//File file = new File("C:\\data\\singapore\\courses\\myFutureSkills.html");
 		FileReader fileReader = new FileReader(file);
 		BufferedReader in = new BufferedReader(fileReader);
 		StringBuffer query = new StringBuffer();
@@ -52,12 +53,13 @@ public class mySkillsFuture {
 		int j=1;
 		Map<String, String> professions = new HashMap<String, String>();
 		descipline=new HashMap<String,String>(); 
-		query.append("insert into taxonomies.training_course (code,name,link, institution, sector, fee) values ");
+		query.append("insert into taxonomies.training_course3 (code,name,link, institution, sector, fee) values ");
 		while ((inputLine = in.readLine()) != null) {
 			if (inputLine.contains("<div data-bind=\"attr: { title: courseTitle }\"") && inputLine.contains("title=\"")) {
 				query = new StringBuffer();
-				query.append("insert into taxonomies.training_course (code,name,link, institution, sector, fee) values ");
+				query.append("insert into taxonomies.training_course3 (code,name,link, institution, sector, fee) values ");
 				code=name=link=inst=sector=fee=null;
+				//System.out.println(inputLine);
 				name = inputLine.substring(inputLine.indexOf("title=\"") + 7, inputLine.indexOf("\">"));
 				System.out.println(j + "- " + name);
 				j++;
@@ -69,7 +71,9 @@ public class mySkillsFuture {
 						System.out.println("\t" + link);
 					}
 					if (inputLine.contains("EXT_Course_Ref_Nos[0]")) {
-						code = inputLine.substring(inputLine.indexOf("EXT_Course_Ref_Nos[0]") + 23, inputLine.indexOf("</span>"));
+						//System.out.println(inputLine);
+						code = inputLine.substring(inputLine.indexOf("EXT_Course_Ref_Nos[0]") + 23, 
+							inputLine.indexOf("</span>"));
 						System.out.println("\t" + code);
 					}
 					if (inputLine.contains("title : organisationNameTitles[0]")) {

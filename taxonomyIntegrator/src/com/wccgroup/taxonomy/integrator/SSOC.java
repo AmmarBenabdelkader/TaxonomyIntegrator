@@ -16,6 +16,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 //import com.wccgroup.elise.testdata_ssoc.Parser_niriCVs_HRxml.UserHandler;
 import java.sql.*;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
 /**
@@ -212,6 +213,12 @@ public class SSOC {
 		stmt = conn.createStatement();
 		StringBuilder document;
 		BufferedWriter writer;
+		Random rn = new Random();
+		
+		Date date = new Date();
+		GregorianCalendar cal = new GregorianCalendar();
+		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+		int idx1=0; 
 
 
 		System.out.println( "Actonomy Input generation: ");
@@ -219,22 +226,38 @@ public class SSOC {
 		//*** Case 1 *** SSOC occupations which are mapped to ESCO
 		//String query= "SELECT distinct code, name, description, 'SSOC' FROM ssoc.occupation where type='SSOC Original' and description is not null";
 		//*** Case 2 *** SSOC occupations which are not mapped to ESCO
-		String query= "SELECT Course_Code, Course_Name, course_Objectives, course_Content, Sector, 'SkillsFuture' source FROM taxonomies.training_course2 limit 5";
+		//String query= "SELECT Course_Code, Course_Name, course_Objectives, course_Content, Sector, 'SkillsFuture' source FROM taxonomies.training_course2 limit 5";
+		String query= "SELECT * FROM taxonomies.training_course2 limit 5";
 		ResultSet rs = stmt.executeQuery(query);
 		for (; rs.next();)
 		{
 			document = new StringBuilder();
 			document.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-			System.out.println( "\t" + (i++) + "-\t" + rs.getString(2) + ": " + rs.getString(1));
-			writer = new BufferedWriter(new FileWriter(new File(outputFile + rs.getString(1))));
-			//writer = new BufferedWriter(new FileWriter(new File(outputFile + rs.getString(2))));
+			System.out.println( "\t" + (i++) + "-\t" + rs.getString(3) + ": " + rs.getString(1));
+			//writer = new BufferedWriter(new FileWriter(new File(outputFile + rs.getString(2) + ".xml")));
+			writer = new BufferedWriter(new FileWriter(new File(outputFile + rs.getString(2))));
 			document.append("\t<Training lang=\"EN\">\n");
-			document.append("\t\t<code>" + rs.getString(1) + "</code>\n");
-			document.append("\t\t<Name>" + rs.getString(2).replaceAll("&", "&amp;") + "</Name>\n");
-			document.append("\t\t<objectives>" + rs.getString(3) + "</objectives>\n");
-			document.append("\t\t<content>" + rs.getString(4) + "</content>\n");
-			document.append("\t\t<sector>" + rs.getString(5) + "</sector>\n");
-			document.append("\t\t<Source>" + rs.getString(6) + "</Source>\n");
+			document.append("\t\t<code>" + rs.getString(2) + "</code>\n");
+			document.append("\t\t<Name>" + rs.getString(3).replaceAll("&", "&amp;") + "</Name>\n");
+			document.append("\t\t<objectives>" + rs.getString(4) + "</objectives>\n");
+			document.append("\t\t<content>" + rs.getString(5) + "</content>\n");
+			document.append("\t\t<URL>" + rs.getString(6) + "</URL>\n");
+			document.append("\t\t<duration>" + rs.getString(7) + "</duration>\n");
+			document.append("\t\t<mode>" + rs.getString(8) + "</mode>\n");
+			document.append("\t\t<min_qualification>" + rs.getString(9) + "</min_qualification>\n");
+			document.append("\t\t<job_level>" + rs.getString(10) + "</job_level>\n");
+			document.append("\t\t<institution>" + rs.getString(11) + "</institution>\n");
+			document.append("\t\t<sector>" + rs.getString(12) + "</sector>\n");
+			document.append("\t\t<fee>" + rs.getString(13) + "</fee>\n");
+			cal.setTime(date);
+			idx1 = rn.nextInt(180);
+			cal.add(Calendar.DATE, -idx1);
+			document.append("\t\t<starting_date>" + format.format(cal.getTime()) + "</starting_date>\n");
+			idx1 = rn.nextInt(730-idx1+1);
+			cal.setTime(date);
+			cal.add(Calendar.DATE, idx1);
+			document.append("\t\t<closing_date>" + format.format(cal.getTime()) + "</closing_date>\n");
+			document.append("\t\t<Source>SkillsFuture</Source>\n");
 
 			document.append("\t</Training>\n");
 			writer.write(document.toString());
