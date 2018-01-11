@@ -45,8 +45,8 @@ public class SSOC {
 		//fixLevel5Competence();
 		//distributeSkills();
 		//occupationActonomyInput("\\\\savannah\\home\\abenabdelkader\\Documents\\projects\\Singapore\\data\\occupationIndex\\");
-		//competenceActonomyInput("c:\\data\\Singapore\\competenceIndex\\");
-		trainingActonomyInput("c:\\data\\Singapore\\TrainingIndex\\");
+		competenceActonomyInput("c:\\data\\Singapore\\competenceIndex\\");
+		//trainingActonomyInput("c:\\data\\Singapore\\TrainingIndex\\");
 		//generateActonomyInput_esco("\\\\savannah\\home\\abenabdelkader\\Documents\\projects\\Singapore\\OntologyInput\\");
 		//removeFilesExtension("C:\\data\\CVs\\Jobs\\");
 		//relatedOccupation_skills();   // generate related occupations based on common ESCO skills
@@ -131,6 +131,7 @@ public class SSOC {
 			writer.close();
 
 		}
+		stmt2.close();
 		stmt.close();
 		conn.close();
 
@@ -145,7 +146,6 @@ public class SSOC {
 		conn = DriverManager.getConnection(DB_URL, USER, PASS);
 		stmt = conn.createStatement();
 		stmt2 = conn.createStatement();
-		Statement stmt3 = conn.createStatement();
 		StringBuilder document;
 		BufferedWriter writer;
 
@@ -155,7 +155,7 @@ public class SSOC {
 		//*** Case 1 *** SSOC occupations which are mapped to ESCO
 		//String query= "SELECT distinct code, name, description, 'SSOC' FROM ssoc.occupation where type='SSOC Original' and description is not null";
 		//*** Case 2 *** SSOC occupations which are not mapped to ESCO
-		String query= "SELECT distinct code, name, description, type, 'ESCO' source FROM escov1.skills limit 500";
+		String query= "SELECT distinct code, name, description, type, 'ESCO' source FROM escov1.skills where type is not null limit 6000, 10000";
 		ResultSet rs = stmt.executeQuery(query);
 		for (; rs.next();)
 		{
@@ -163,7 +163,7 @@ public class SSOC {
 			document.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 			System.out.println( "\t" + (i++) + "-\t" + rs.getString(2) + ": " + rs.getString(1));
 			//writer = new BufferedWriter(new FileWriter(new File(outputFile + rs.getString(1))));
-			writer = new BufferedWriter(new FileWriter(new File(outputFile + rs.getString(2))));
+			writer = new BufferedWriter(new FileWriter(new File(outputFile + rs.getString(2).replaceAll("/", "_"))));
 			document.append("\t<Competence lang=\"EN\">\n");
 			document.append("\t\t<code>" + rs.getString(1) + "</code>\n");
 			document.append("\t\t<Name>" + rs.getString(2).replaceAll("&", "&amp;") + "</Name>\n");
@@ -200,6 +200,8 @@ public class SSOC {
 
 		}
 		stmt.close();
+		stmt2.close();
+		rs.close();
 		conn.close();
 
 	}
