@@ -37,10 +37,10 @@ public class NAMEconverter {
 		PASS = "";
 		
 
-		System.out.println("\t*** Mapping Taxonomy-Ontology - ****");
+		System.out.println("\t*** Extracting JSON Data - ****");
 		//resetOntologydata("esco_onet");
 		//jobTitleMapper("http://demos.savannah.wcc.nl:14080/ontology/v1", "esco_onet", "SELECT onetsoc_code, title FROM onet.occupation_data", "occupation", 0, 10000);  // ONET occupations
-		OccupationConverter("\\\\savannah\\home\\abenabdelkader\\Documents\\projects\\taxonomy\\Name\\NAME2.json");  // ONET occupations
+		OccupationConverter("\\\\savannah\\home\\abenabdelkader\\Documents\\projects\\taxonomy\\Name\\NAME3.json");  // ONET occupations
 		
 /*		resetOntologydata("onet");
 		jobTitleMapper("http://demos.savannah.wcc.nl:14080/ontology/v1", "onet", "SELECT onetsoc_code, title FROM onet.occupation_data", "occupation", 0, 10000);  // ONET occupations
@@ -66,35 +66,67 @@ public class NAMEconverter {
 	/* Reads the job titles from a taxonomy and mapps them to ontology functions/function_groups */
 	public static void OccupationConverter(String path) throws SQLException, ClassNotFoundException, FileNotFoundException, IOException
 	{
+		Class.forName(JDBC_DRIVER);
+		Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
+		Statement stmt = conn.createStatement();
 		int counter = 1;
-		int j = 0;
-		String stringBuilder = "";
-		stringBuilder+="{\n\"nodes\":\n";
-		String line;
-		FileReader fileReader = 
-            new FileReader(path);
-
-        // Always wrap FileReader in BufferedReader.
-        BufferedReader in = 
-            new BufferedReader(fileReader);
-
-        while ((line = in.readLine()) != null) {
-			stringBuilder+=line + '\n';
-		}
-		stringBuilder+="}";
-		in.close();
-		
-
-		
-		System.out.print("\nExtracting ontology data: " + path + "\n\t" );
-		System.out.print("\njson file: \n" + stringBuilder + "\n\t" );
+		//int j = 0;
+		System.out.print("\nExtracting JSON data, from: " + path + "\n\t" );
 
 		try {
 				 JSONParser parser = new JSONParser();
-			        Object object = parser.parse(stringBuilder);
-			        JSONObject jsonObject = (JSONObject) object;
-	        JSONArray nodes = (JSONArray) jsonObject.get("metiers");
+				 Object obj = parser.parse(new FileReader(path));
 
+		            JSONObject jsonObject =  (JSONObject) obj;
+		            
+		            //Object object = parser.parse(stringBuilder);
+			        //JSONObject jsonObject = (JSONObject) object;
+	        JSONArray nodes = (JSONArray) jsonObject.get("meties");
+			System.out.println("\nnbre of results: \n" + nodes.size() );
+			JSONObject object, object2, object3, object4, object5;
+			 for (int i = 0; i < nodes.size(); i++) {
+				StringBuilder stringBuilder = new StringBuilder();
+				stringBuilder.append("insert into name.occupation (code, name, parent) values ");
+				 object = (JSONObject)nodes.get(i);
+				System.out.println(object.get("Level") + "- " + object.get("Id") + ": "  +object.get("Intitule"));
+				stringBuilder.append("(\"" + object.get("Id") + "\",\""  + object.get("Intitule") + "\",null),");
+		        JSONArray nodes2 = (JSONArray) object.get("NameObjects");
+				 if (nodes2==null) 
+					 continue;
+				 for (int j = 0; j < nodes2.size(); j++) {
+					 object2 = (JSONObject)nodes2.get(j);
+					System.out.println("\t" + object2.get("Level") + "- " + object2.get("Id") + ": "  +object2.get("Intitule") + " (Parent - " + object2.get("IdParent") + ": "  +object2.get("IntituleParent") + ")" );
+					stringBuilder.append("(\"" + object2.get("Id") + "\",\""  + object2.get("Intitule") + "\",\""  + object2.get("IdParent") + "\"),");
+			        JSONArray nodes3 = (JSONArray) object2.get("NameObjects");
+					 if (nodes3==null) 
+						 continue;
+					 for (int k = 0; k < nodes3.size(); k++) {
+						 object3 = (JSONObject)nodes3.get(k);
+						System.out.println("\t\t" + object3.get("Level") + "- " + object3.get("Id") + ": "  +object3.get("Intitule") + " (Parent - " + object3.get("IdParent") + ": "  +object3.get("IntituleParent") + ")" );
+						stringBuilder.append("(\"" + object3.get("Id") + "\",\""  + object3.get("Intitule") + "\",\""  + object3.get("IdParent") + "\"),");
+				        JSONArray nodes4 = (JSONArray) object3.get("NameObjects");
+						 if (nodes4==null) 
+							 continue;
+						 for (int l = 0; l < nodes4.size(); l++) {
+							 object4 = (JSONObject)nodes4.get(l);
+							System.out.println("\t\t\t" + object4.get("Level") + "- " + object4.get("Id") + ": "  +object4.get("Intitule") + " (Parent - " + object4.get("IdParent") + ": "  +object4.get("IntituleParent") + ")" );
+							stringBuilder.append("(\"" + object4.get("Id") + "\",\""  + object4.get("Intitule") + "\",\""  + object4.get("IdParent") + "\"),");
+					        JSONArray nodes5 = (JSONArray) object4.get("NameObjects");
+							 if (nodes5==null) 
+								 continue;
+							 for (int m = 0; m < nodes5.size(); m++) {
+								 object5 = (JSONObject)nodes5.get(m);
+								System.out.println("\t\t\t\t" + object5.get("Level") + "- " + object5.get("Id") + ": "  +object5.get("Intitule") + " (Parent - " + object5.get("IdParent") + ": "  +object5.get("IntituleParent") + ")" );
+								stringBuilder.append("(\"" + object5.get("Id") + "\",\""  + object5.get("Intitule") + "\",\""  + object5.get("IdParent") + "\"),");
+							 }
+						 }
+					 }
+				 }
+					System.out.println(stringBuilder.toString() );
+				 stmt.executeUpdate(stringBuilder.toString().substring(0, stringBuilder.toString().length()-1));
+			 }
+			 stmt.close();
+			 conn.close();
 
  			 }
 			 catch (ParseException e)

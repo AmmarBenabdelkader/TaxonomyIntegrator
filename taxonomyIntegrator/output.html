@@ -1,0 +1,106 @@
+
+
+
+
+
+
+
+<html>
+<head>
+	<title>Session Expired</title>
+	<link rel="stylesheet" href="/sopweb/css/sopstyle.css" type="text/css">
+<style type="text/css">
+    body {
+        margin : 0px;
+        padding: 0px;
+        background-color: '#FFFFFF';
+    }
+</style>
+</head>
+
+<body>
+
+
+
+
+
+
+
+<form action="/sop/portal/" name="relogin" method="post" target="_top">
+
+<input type="hidden" name="javax.servlet.forward.context_path" value="/sop">
+
+<input type="hidden" name="javax.servlet.forward.servlet_path" value="/WebPageHandler">
+
+<input type="hidden" name="javax.servlet.forward.request_uri" value="/sop/WebPageHandler">
+
+<script language="JavaScript" type="text/javascript">
+<!--
+	function mySubmit() {
+	   document.relogin.submit();
+	}
+-->
+</script>
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr class="normal">
+ <td>
+   
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+
+	<tr>
+		<td style="padding:0px;">	
+			<img src="/sopweb/images/SSG_logo.JPG" width="245" height="100"/>
+		</td>
+		<td align="right" style="padding:0px;">
+            <a href="http://www.gov.sg"><img src="/sopweb/images/masthead_top_singapore.gif" alt="Singapore Government" style="border:0"/></a>
+		</td>
+	</tr>
+</table>
+
+   <table width="100%" border="0" cellspacing="0" cellpadding="0">
+        <tr>
+        <td style="background-image: url('/sopweb/images/table-notab.gif'); height : 4px;"><img src="/sopweb/images/table-notab.gif" height="4"/></td>
+        </tr>
+    </table>
+ </td>
+</tr>
+
+<tr><td><table width="100%" border="0" cellspacing="5" cellpadding="5">
+<tr class="header"><td>No Session or Session Expired</td></tr>
+<tr class="normal"><td><hr></td></tr>
+
+<tr><td><table width="100%" border="0" cellspacing="0" cellpadding="0">
+
+<tr class="normal"><td>Sorry, we are unable to process your request due to the following error:</td></tr>
+
+<tr class="normal"><td>&nbsp;</td></tr>
+
+<tr class="error"><td>Your session does not exist or has expired.</td></tr>
+
+<tr class="normal"><td>&nbsp;</td></tr>
+
+<tr class="normal"><td>Either you have not logged in or your session has expired. An expired session will log you out when you leave your browser session (with this site)
+  idle for more than the duration allowed. This feature is configured for your security.</td></tr>
+
+<tr class="normal"><td>&nbsp;</td></tr>
+
+<tr class="normal"><td>Please follow this <a href="javascript:mySubmit()">link</a>
+  to login again. </td></tr>
+</table></td></tr>
+
+<tr class=""><td><hr></td></tr>
+</table></td></tr>
+
+</table>
+</form>
+<script type="text/javascript">
+//<![CDATA[
+(function() {
+var _analytics_scr = document.createElement('script');
+_analytics_scr.type = 'text/javascript'; _analytics_scr.async = true; _analytics_scr.src = '/_Incapsula_Resource?SWJIYLWA=719d34d31c8e3a6e6fffd425f7e032f3&ns=3&cb=297719938';
+var _analytics_elem = document.getElementsByTagName('script')[0]; _analytics_elem.parentNode.insertBefore(_analytics_scr, _analytics_elem);
+})();
+// ]]>
+</script></body>
+</html>

@@ -45,8 +45,8 @@ public class SSOC {
 		//fixLevel5Competence();
 		//distributeSkills();
 		//occupationActonomyInput("\\\\savannah\\home\\abenabdelkader\\Documents\\projects\\Singapore\\data\\occupationIndex\\");
-		competenceActonomyInput("c:\\data\\Singapore\\competenceIndex\\");
-		//trainingActonomyInput("c:\\data\\Singapore\\TrainingIndex\\");
+		//competenceActonomyInput("c:\\data\\Singapore\\competenceIndex\\");
+		trainingActonomyInput("c:\\data\\Singapore\\TrainingIndex\\");
 		//generateActonomyInput_esco("\\\\savannah\\home\\abenabdelkader\\Documents\\projects\\Singapore\\OntologyInput\\");
 		//removeFilesExtension("C:\\data\\CVs\\Jobs\\");
 		//relatedOccupation_skills();   // generate related occupations based on common ESCO skills
@@ -229,7 +229,8 @@ public class SSOC {
 		//String query= "SELECT distinct code, name, description, 'SSOC' FROM ssoc.occupation where type='SSOC Original' and description is not null";
 		//*** Case 2 *** SSOC occupations which are not mapped to ESCO
 		//String query= "SELECT Course_Code, Course_Name, course_Objectives, course_Content, Sector, 'SkillsFuture' source FROM taxonomies.training_course2 limit 5";
-		String query= "SELECT * FROM taxonomies.training_course2 limit 5";
+		//String query= "SELECT * FROM taxonomies.training_course2 limit 5";
+		String query= "SELECT distinct code, title, objectives, content, url, type,area,mode,language,duration_hours,_course_length, total_cost,'SkillsFuture' sourse FROM taxonomies.training_course_sf";
 		ResultSet rs = stmt.executeQuery(query);
 		for (; rs.next();)
 		{
@@ -237,20 +238,20 @@ public class SSOC {
 			document.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 			System.out.println( "\t" + (i++) + "-\t" + rs.getString(3) + ": " + rs.getString(1));
 			//writer = new BufferedWriter(new FileWriter(new File(outputFile + rs.getString(2) + ".xml")));
-			writer = new BufferedWriter(new FileWriter(new File(outputFile + rs.getString(2))));
+			writer = new BufferedWriter(new FileWriter(new File(outputFile + rs.getString(1))));
 			document.append("\t<Training lang=\"EN\">\n");
-			document.append("\t\t<code>" + rs.getString(2) + "</code>\n");
-			document.append("\t\t<Name>" + rs.getString(3).replaceAll("&", "&amp;") + "</Name>\n");
-			document.append("\t\t<objectives>" + rs.getString(4) + "</objectives>\n");
-			document.append("\t\t<content>" + rs.getString(5) + "</content>\n");
-			document.append("\t\t<URL>" + rs.getString(6) + "</URL>\n");
-			document.append("\t\t<duration>" + rs.getString(7) + "</duration>\n");
+			document.append("\t\t<code>" + rs.getString(1) + "</code>\n");
+			document.append("\t\t<Name>" + rs.getString(2).replaceAll("&", "&amp;") + "</Name>\n");
+			document.append("\t\t<objectives>" + rs.getString(3).replaceAll("&", "&amp;") + "</objectives>\n");
+			document.append("\t\t<content>" + rs.getString(4).replaceAll("&", "&amp;") + "</content>\n");
+			document.append("\t\t<URL>" + rs.getString(5) + "</URL>\n");
+			document.append("\t\t<duration>" + rs.getString(10) + " hours (" + rs.getString(11) + ")</duration>\n");
 			document.append("\t\t<mode>" + rs.getString(8) + "</mode>\n");
-			document.append("\t\t<min_qualification>" + rs.getString(9) + "</min_qualification>\n");
-			document.append("\t\t<job_level>" + rs.getString(10) + "</job_level>\n");
-			document.append("\t\t<institution>" + rs.getString(11) + "</institution>\n");
-			document.append("\t\t<sector>" + rs.getString(12) + "</sector>\n");
-			document.append("\t\t<fee>" + rs.getString(13) + "</fee>\n");
+			document.append("\t\t<min_qualification></min_qualification>\n");
+			document.append("\t\t<job_level></job_level>\n");
+			document.append("\t\t<institution></institution>\n");
+			document.append("\t\t<sector>" + rs.getString(7).replaceAll("&", "&amp;") + "</sector>\n");
+			document.append("\t\t<fee>$" + rs.getString(12) + "</fee>\n");
 			cal.setTime(date);
 			idx1 = rn.nextInt(180);
 			cal.add(Calendar.DATE, -idx1);
@@ -259,7 +260,7 @@ public class SSOC {
 			cal.setTime(date);
 			cal.add(Calendar.DATE, idx1);
 			document.append("\t\t<closing_date>" + format.format(cal.getTime()) + "</closing_date>\n");
-			document.append("\t\t<Source>SkillsFuture</Source>\n");
+			document.append("\t\t<Source>" + rs.getString(13) + "</Source>\n");
 
 			document.append("\t</Training>\n");
 			writer.write(document.toString());

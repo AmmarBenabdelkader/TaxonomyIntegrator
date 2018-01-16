@@ -132,7 +132,8 @@ public class learningTree {
 
 		String query;
 		String name, code;
-		query = "SELECT distinct name, link, descipline FROM taxonomies.training_course_elt limit 548";
+		//query = "SELECT distinct name, link, descipline FROM taxonomies.training_course_elt limit 548";
+		query = "SELECT distinct name, link, descipline FROM taxonomies.training_course_elt where description is null and name not in (SELECT name FROM taxonomies.training_course_elt where description is not null)";
 		ResultSet rs = stmt.executeQuery(query);
 		int k = 1;
 		
@@ -149,8 +150,8 @@ public class learningTree {
 					new InputStreamReader(httpcon.getInputStream()));
 
 
-			String desc,type,duration, min_req, content;
-			code=name=desc=type=duration=min_req=content="";
+			String desc,type,duration, min_req, content, fee, timing, location;
+			code=name=desc=type=duration=min_req=content=fee=timing=location="";
 
 			while ((inputLine = in.readLine()) != null) {
 				if (inputLine.contains("<script")) {
@@ -176,11 +177,17 @@ public class learningTree {
 					inputLine = in.readLine();
 					duration = inputLine.substring(inputLine.indexOf("<h5>")+4,inputLine.indexOf("</h5>")).trim();
 					System.out.println("\tDuration: " + duration );
+					inputLine = in.readLine();
 				}
 				if (inputLine!=null && inputLine.contains("<p class=\"aboutcourse\">")) {
-					while ((inputLine = in.readLine()) != null && !inputLine.contains("<div id=\"crsimp\">")) {
-						desc += cleanTags(inputLine).trim();
+					while ((inputLine = in.readLine()) != null && !inputLine.contains("<div id=\"crsimp\">") && !inputLine.contains("Course Outline</h2>") && !inputLine.contains("<div ng-app=\"CartApp\">")) {
+						if (inputLine.contains("<script")) {
+							while ((inputLine = in.readLine()) != null && !inputLine.contains("</script>"));
+						}
+						else
+							desc += cleanTags(inputLine).trim();
 					}
+					desc = cleanTags(desc);
 					System.out.println("\tDescription: " + desc );
 				}
 				if (inputLine!=null && (inputLine.contains("<h3>Requirements:</h3>") || inputLine.contains("Course Outline</h2>"))) {
@@ -195,14 +202,40 @@ public class learningTree {
 					}
 					System.out.println("\tContent: " + content );
 				}
+				if (inputLine!=null && inputLine.contains("Tuition &mdash;")) {
+					if (inputLine.contains("Standard:")) {
+						fee = inputLine.substring(inputLine.indexOf("$")+1, inputLine.indexOf("&nbsp;")).trim();
+						System.out.println("\tTuition Standard: " + fee );
+					}
+					if ((inputLine = in.readLine()) != null && inputLine.contains("Government:"))
+						System.out.println("\tTuition Government: " + inputLine.substring(inputLine.indexOf("$")+1, inputLine.indexOf("</p>")).trim() );
+				}
+				if (inputLine!=null && inputLine.contains("g2r scheduledEvent")) {
+					if ((inputLine = in.readLine()) != null ) {
+						timing += inputLine.trim() ;
+						System.out.print("\t- " + timing );
+					}
+					while ((inputLine = in.readLine()) != null && !inputLine.contains("</p>")) {
+						if (inputLine.contains("duration hrs")) {
+							timing += cleanTags(inputLine).trim();
+							System.out.print(" - " + cleanTags(inputLine).trim());
+						}
+						if (inputLine.contains("addressLocality")) {
+							timing += " - location: " + cleanTags(inputLine).trim() + "\n";
+							location += cleanTags(inputLine).trim();
+							System.out.println(" - location: " + location);
+						}
+					}
+				}
 			}
 			in.close();
 			System.out.println("name.length: " + name.length() );
 			if(name.length()>3){
-				query = "insert into taxonomies.training_course_elt (code, name, type, descipline, link, duration, description, requirements,content) values ";
+				query = "insert into taxonomies.training_course_elt (code, name, type, descipline, link, duration, description, requirements,content, fee, timing,location) values ";
 				query += "(\"" + code + "\", \"" + name + "\", \"" + type + "\", \"" +  rs.getString(3) 
-				 + "\", \"" +  rs.getString(2) + "\", \"" +  duration + "\", \"" +  desc
-				 + "\", \"" +  min_req + "\", \"" +  content
+				 + "\", \"" +  rs.getString(2) + "\", \"" +  duration + "\", \"" +  desc.replaceAll("\"", "'")
+				 + "\", \"" +  min_req.replaceAll("\"", "'") + "\", \"" +  content.replaceAll("\"", "'")
+				 + "\", " +  (fee.length()>1?fee:0) + ", \"" +  timing.replaceAll("\"", "'") + "\", \"" +  location.replaceAll("\"", "'")
 				 + "\")";
 				System.out.println("\n" + query.toString() );
 				stmt2.executeUpdate(query);
