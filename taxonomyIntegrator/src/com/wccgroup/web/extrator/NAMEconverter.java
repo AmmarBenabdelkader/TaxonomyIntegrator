@@ -38,28 +38,9 @@ public class NAMEconverter {
 		
 
 		System.out.println("\t*** Extracting JSON Data - ****");
-		//resetOntologydata("esco_onet");
-		//jobTitleMapper("http://demos.savannah.wcc.nl:14080/ontology/v1", "esco_onet", "SELECT onetsoc_code, title FROM onet.occupation_data", "occupation", 0, 10000);  // ONET occupations
-		OccupationConverter("\\\\savannah\\home\\abenabdelkader\\Documents\\projects\\taxonomy\\Name\\NAME3.json");  // ONET occupations
+		//OccupationConverter("\\\\savannah\\home\\abenabdelkader\\Documents\\projects\\taxonomy\\Name\\NAME3.json");  // ONET occupations
+		OccupationDetailsConverter("\\\\savannah\\home\\abenabdelkader\\Documents\\projects\\taxonomy\\Name\\NAMEDetails3.json");  // ONET occupations
 		
-/*		resetOntologydata("onet");
-		jobTitleMapper("http://demos.savannah.wcc.nl:14080/ontology/v1", "onet", "SELECT onetsoc_code, title FROM onet.occupation_data", "occupation", 0, 10000);  // ONET occupations
-		jobTitleMapper("http://demos.savannah.wcc.nl:14080/ontology/v1", "onet", "SELECT distinct onetsoc_code, reported_job_title FROM onet.sample_of_reported_titles where reported_job_title not in (select jobtitle from onet.ontology_occupation)", "reported job title", 0, 10000);  // ONET Reported job titles
-		jobTitleMapper("http://demos.savannah.wcc.nl:14080/ontology/v1", "onet", "SELECT distinct onetsoc_code, alternate_title FROM onet.alternate_titles where alternate_title not in (select jobtitle from onet.ontology_occupation)", "alternate job title", 0, 10000);  // ONET Alternate job titles
-		jobTitleMapper("http://demos.savannah.wcc.nl:14080/ontology/v1", "onet", "SELECT distinct onetsoc_code, alternate_title FROM onet.alternate_titles where alternate_title not in (select jobtitle from onet.ontology_occupation)", "alternate job title", 10001, 20000);  // ONET Alternate job titles
-		jobTitleMapper("http://demos.savannah.wcc.nl:14080/ontology/v1", "onet", "SELECT distinct onetsoc_code, alternate_title FROM onet.alternate_titles where alternate_title not in (select jobtitle from onet.ontology_occupation)", "alternate job title", 20001, 30000);  // ONET Alternate job titles
-		jobTitleMapper("http://demos.savannah.wcc.nl:14080/ontology/v1", "onet", "SELECT distinct onetsoc_code, alternate_title FROM onet.alternate_titles where alternate_title not in (select jobtitle from onet.ontology_occupation)", "alternate job title", 30001, 40000);  // ONET Alternate job titles
-		jobTitleMapper("http://demos.savannah.wcc.nl:14080/ontology/v1", "onet", "SELECT distinct onetsoc_code, alternate_title FROM onet.alternate_titles where alternate_title not in (select jobtitle from onet.ontology_occupation)", "alternate job title", 40001, 50000);  // ONET Alternate job titles
-		
-		deduplicateOntologydata("onet");
-		
-		resetOntologydata_competence("onet");
-		competencyMapper("http://demos.savannah.wcc.nl:14080/ontology/v1", "onet", "SELECT distinct onetsoc_code, t2_example FROM onet.tools_and_technology where t2_type='Tools' and  t2_example not in (select jobtitle from onet.ontology_competence)", "Tools", 0, 10000);  // ONET Tools
-		
-		System.out.println("\nTotal duration: " + (new Date().getTime() - date.getTime())/1000 + "s");
-
-*/		//jobTitleMapper("http://demos.savannah.wcc.nl:14080", "ssoc_temp", "SELECT id, jobtitle FROM ssoc2.jobtitles where length(jobtitle)>3");  // SSOC
-
 
 	}
 
@@ -82,8 +63,8 @@ public class NAMEconverter {
 		            //Object object = parser.parse(stringBuilder);
 			        //JSONObject jsonObject = (JSONObject) object;
 	        JSONArray nodes = (JSONArray) jsonObject.get("meties");
-			System.out.println("\nnbre of results: \n" + nodes.size() );
-			JSONObject object, object2, object3, object4, object5;
+			//System.out.println("\nnbre of results: \n" + nodes.size() );
+			JSONObject object, object2, object3, object4, object5, object6;
 			 for (int i = 0; i < nodes.size(); i++) {
 				StringBuilder stringBuilder = new StringBuilder();
 				stringBuilder.append("insert into name.occupation (code, name, parent) values ");
@@ -96,33 +77,41 @@ public class NAMEconverter {
 				 for (int j = 0; j < nodes2.size(); j++) {
 					 object2 = (JSONObject)nodes2.get(j);
 					System.out.println("\t" + object2.get("Level") + "- " + object2.get("Id") + ": "  +object2.get("Intitule") + " (Parent - " + object2.get("IdParent") + ": "  +object2.get("IntituleParent") + ")" );
-					stringBuilder.append("(\"" + object2.get("Id") + "\",\""  + object2.get("Intitule") + "\",\""  + object2.get("IdParent") + "\"),");
+					stringBuilder.append("(\"" + object2.get("Id") + "_"  + object2.get("IdParent") + "\",\""  + object2.get("Intitule") + "\",\""  + object2.get("IdParent") + "\"),");
 			        JSONArray nodes3 = (JSONArray) object2.get("NameObjects");
 					 if (nodes3==null) 
 						 continue;
 					 for (int k = 0; k < nodes3.size(); k++) {
 						 object3 = (JSONObject)nodes3.get(k);
 						System.out.println("\t\t" + object3.get("Level") + "- " + object3.get("Id") + ": "  +object3.get("Intitule") + " (Parent - " + object3.get("IdParent") + ": "  +object3.get("IntituleParent") + ")" );
-						stringBuilder.append("(\"" + object3.get("Id") + "\",\""  + object3.get("Intitule") + "\",\""  + object3.get("IdParent") + "\"),");
+						stringBuilder.append("(\"" + object3.get("Id") + "_"  + object3.get("IdParent")  + "\",\""  + object3.get("Intitule") + "\",\""  + object3.get("IdParent") + "\"),");
 				        JSONArray nodes4 = (JSONArray) object3.get("NameObjects");
 						 if (nodes4==null) 
 							 continue;
 						 for (int l = 0; l < nodes4.size(); l++) {
 							 object4 = (JSONObject)nodes4.get(l);
 							System.out.println("\t\t\t" + object4.get("Level") + "- " + object4.get("Id") + ": "  +object4.get("Intitule") + " (Parent - " + object4.get("IdParent") + ": "  +object4.get("IntituleParent") + ")" );
-							stringBuilder.append("(\"" + object4.get("Id") + "\",\""  + object4.get("Intitule") + "\",\""  + object4.get("IdParent") + "\"),");
+							stringBuilder.append("(\"" + object4.get("Id") + "_"  + object4.get("IdParent")  + "\",\""  + object4.get("Intitule") + "\",\""  + object4.get("IdParent") + "\"),");
 					        JSONArray nodes5 = (JSONArray) object4.get("NameObjects");
 							 if (nodes5==null) 
 								 continue;
 							 for (int m = 0; m < nodes5.size(); m++) {
 								 object5 = (JSONObject)nodes5.get(m);
 								System.out.println("\t\t\t\t" + object5.get("Level") + "- " + object5.get("Id") + ": "  +object5.get("Intitule") + " (Parent - " + object5.get("IdParent") + ": "  +object5.get("IntituleParent") + ")" );
-								stringBuilder.append("(\"" + object5.get("Id") + "\",\""  + object5.get("Intitule") + "\",\""  + object5.get("IdParent") + "\"),");
+								stringBuilder.append("(\"" + object5.get("Id") + "_"  + object5.get("IdParent")  + "\",\""  + object5.get("Intitule") + "\",\""  + object5.get("IdParent") + "\"),");
+						        JSONArray nodes6 = (JSONArray) object5.get("NameObjects");
+								 if (nodes6==null) 
+									 continue;
+								 for (int n = 0; n < nodes6.size(); n++) {
+									 object6 = (JSONObject)nodes6.get(n);
+									System.out.println("\t\t\t\t\t" + object6.get("Level") + "- " + object6.get("Id") + ": "  +object6.get("Intitule") + " (Parent - " + object6.get("IdParent") + ": "  + object6.get("IntituleParent") + ")" );
+									stringBuilder.append("(\"" + object6.get("Id") + "_"  + object6.get("IdParent")  + "\",\""  + object6.get("Intitule") + "\",\""  + object6.get("IdParent") + "\"),");
+								 }
 							 }
 						 }
 					 }
 				 }
-					System.out.println(stringBuilder.toString() );
+					//System.out.println(stringBuilder.toString() );
 				 stmt.executeUpdate(stringBuilder.toString().substring(0, stringBuilder.toString().length()-1));
 			 }
 			 stmt.close();
@@ -134,6 +123,133 @@ public class NAMEconverter {
 				 e.printStackTrace();
 			 }
 			 counter++;
+
+
+	}
+
+	/* Reads the job titles from a taxonomy and mapps them to ontology functions/function_groups */
+	public static void OccupationDetailsConverter(String path) throws SQLException, ClassNotFoundException, FileNotFoundException, IOException
+	{
+		Class.forName(JDBC_DRIVER);
+		Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
+		Statement stmt = conn.createStatement();
+		int counter = 1;
+		//int j = 0;
+		System.out.print("\nExtracting JSON data, from: " + path + "\n\t" );
+
+		try {
+			JSONParser parser = new JSONParser();
+			Object obj = parser.parse(new FileReader(path));
+
+			JSONObject jsonObject =  (JSONObject) obj;
+
+			//Object object = parser.parse(stringBuilder);
+			//JSONObject jsonObject = (JSONObject) object;
+			JSONArray nodes = (JSONArray) jsonObject.get("meties");
+			//System.out.println("\nnbre of results: \n" + nodes.size() );
+			JSONObject object, object2, object3, object4, object5, object6;
+			String query ="";
+			for (int i = 0; i < nodes.size(); i++) {
+				StringBuilder stringBuilder = new StringBuilder();
+				StringBuilder stringBuilder2 = new StringBuilder();
+				StringBuilder appelations = new StringBuilder();
+				StringBuilder condition_access = new StringBuilder();
+				stringBuilder.append("insert into name.appelation (code, name) values ");
+				stringBuilder2.append("insert into name.condition_access (code, name) values ");
+				appelations.append("insert into name.occupation_appelation (occupation, appelation) values ");
+				condition_access.append("insert into name.occupation_access (occupation, access) values ");
+				object = (JSONObject)nodes.get(i);
+				System.out.println(object.get("Code") + ": "  + object.get("Intitule") + " - "  + object.get("Definition"));
+				query = "update name.occupation set description=\"" + object.get("Definition") + "\" where name=\"" + object.get("Intitule") + "\"" ;
+				//stmt.executeUpdate(query);
+				System.out.println("\tAppelations:");
+				JSONArray nodes2 = (JSONArray) object.get("AppelationDetails");
+				if (nodes2==null) 
+					continue;
+				for (int j = 0; j < nodes2.size(); j++) {
+					object2 = (JSONObject)nodes2.get(j);
+					System.out.println("\t\t" + object2.get("Code") + ": "  +object2.get("Intitule") );
+					stringBuilder.append("(\"" + object2.get("Code") + "\",\""  + object2.get("Intitule") + "\"),");
+					condition_access.append("(\"" + object.get("Intitule") + "\",\""  + object2.get("Code") + "\"),");
+				}
+				//stmt.executeUpdate(stringBuilder.toString().substring(0, stringBuilder.toString().length()-1));
+				//stmt.executeUpdate(appelations.toString().substring(0, appelations.toString().length()-1));
+				System.out.println("\tConditions Access:");
+				nodes2 = (JSONArray) object.get("ConditionAccessDetails");
+				if (nodes2==null) 
+					continue;
+				for (int j = 0; j < nodes2.size(); j++) {
+					object2 = (JSONObject)nodes2.get(j);
+					System.out.println("\t\t" + object2.get("Code") + ": "  +object2.get("Intitule") );
+					stringBuilder2.append("(\"" + object2.get("Code") + "\",\""  + object2.get("Intitule") + "\"),");
+					appelations.append("(\"" + object.get("Intitule") + "\",\""  + object2.get("Code") + "\"),");
+				}
+				stmt.executeUpdate(stringBuilder2.toString().substring(0, stringBuilder2.toString().length()-1));
+				stmt.executeUpdate(condition_access.toString().substring(0, condition_access.toString().length()-1));
+				System.out.println("\tConditions Exercice:");
+				nodes2 = (JSONArray) object.get("ConditionExerciceDetails");
+				if (nodes2==null) 
+					continue;
+				for (int j = 0; j < nodes2.size(); j++) {
+					object2 = (JSONObject)nodes2.get(j);
+					System.out.println("\t\t" + object2.get("Code") + ": "  +object2.get("Intitule") );
+				}
+				System.out.println("\tLieu de Travail:");
+				nodes2 = (JSONArray) object.get("LieuTravailDetails");
+				if (nodes2==null) 
+					continue;
+				for (int j = 0; j < nodes2.size(); j++) {
+					object2 = (JSONObject)nodes2.get(j);
+					System.out.println("\t\t" + object2.get("Code") + ": "  +object2.get("Intitule") );
+				}
+				System.out.println("\tActivite de Base:");
+				nodes2 = (JSONArray) object.get("ActiviteBaseDetails");
+				if (nodes2==null) 
+					continue;
+				for (int j = 0; j < nodes2.size(); j++) {
+					object2 = (JSONObject)nodes2.get(j);
+					System.out.println("\t\t" + object2.get("Code") + ": "  +object2.get("Intitule") );
+				}
+				System.out.println("\tCompetence de Base:");
+				nodes2 = (JSONArray) object.get("CompetenceBaseDetails");
+				if (nodes2==null) 
+					continue;
+				for (int j = 0; j < nodes2.size(); j++) {
+					object2 = (JSONObject)nodes2.get(j);
+					System.out.println("\t\t" + object2.get("Code") + ": "  +object2.get("Intitule") );
+				}
+				System.out.println("\tActivite Specifique:");
+				nodes2 = (JSONArray) object.get("ActiviteSpecifiqueDetails");
+				if (nodes2==null) 
+					continue;
+				for (int j = 0; j < nodes2.size(); j++) {
+					object2 = (JSONObject)nodes2.get(j);
+					System.out.println("\t\t" + object2.get("Code") + ": "  +object2.get("Intitule") );
+					JSONArray nodes3 = (JSONArray) object2.get("CompetenceSpecifiqueDetails");
+					if (nodes3==null) 
+						continue;
+					System.out.println("\t\tCompetence Specifique:");
+					for (int k = 0; k < nodes3.size(); k++) {
+						object3 = (JSONObject)nodes3.get(k);
+						System.out.println("\t\t\t" + object3.get("Code") + ": "  +object3.get("Intitule") );
+					}
+				}
+				//System.out.println(stringBuilder.toString() );
+				//stmt.executeUpdate(stringBuilder.toString().substring(0, stringBuilder.toString().length()-1));
+			}
+			//query = "update name.occupation_appelation set occupation = (select code from name.occupation where name.occupation.name=name.occupation_appelation.occupation)";
+			//stmt.executeUpdate(query);
+			query = "update name.occupation_access set occupation = (select code from name.occupation where name.occupation.name=name.occupation_access.occupation)";
+			stmt.executeUpdate(query);
+			stmt.close();
+			conn.close();
+
+		}
+		catch (ParseException e)
+		{
+			e.printStackTrace();
+		}
+		counter++;
 
 
 	}
