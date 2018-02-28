@@ -25,7 +25,7 @@ import java.util.Date;
  */
 
 
-public class SSOC {
+public class actonomyInput {
 	static String JDBC_DRIVER = "";
 	static String DB_URL = "";
 	static String USER = "";
@@ -210,9 +210,11 @@ public class SSOC {
 	{
 		Connection conn = null;
 		Statement stmt = null;
+		Statement stmt2 = null;
 		Class.forName(JDBC_DRIVER);
 		conn = DriverManager.getConnection(DB_URL, USER, PASS);
 		stmt = conn.createStatement();
+		stmt2 = conn.createStatement();
 		StringBuilder document;
 		BufferedWriter writer;
 		Random rn = new Random();
@@ -230,8 +232,9 @@ public class SSOC {
 		//*** Case 2 *** SSOC occupations which are not mapped to ESCO
 		//String query= "SELECT Course_Code, Course_Name, course_Objectives, course_Content, Sector, 'SkillsFuture' source FROM taxonomies.training_course2 limit 5";
 		//String query= "SELECT * FROM taxonomies.training_course2 limit 5";
-		String query= "SELECT distinct code, title, objectives, content, url, type,area,mode,language,duration_hours,_course_length, total_cost,'SkillsFuture' sourse FROM taxonomies.training_course_sf";
-		ResultSet rs = stmt.executeQuery(query);
+		String query= "SELECT distinct code, title, objectives, content, url, duration_hrs, duration_days, full_fee, edu_code, min_edu,'SkillsFuture' sourse "
+			+ "FROM courses.course_data"; // where code in (SELECT distinct skill_id FROM ssoc_subset.occup_tech_skills)"; // limit 10";
+		ResultSet rs = stmt2.executeQuery(query);
 		for (; rs.next();)
 		{
 			document = new StringBuilder();
@@ -245,13 +248,13 @@ public class SSOC {
 			document.append("\t\t<objectives>" + rs.getString(3).replaceAll("&", "&amp;") + "</objectives>\n");
 			document.append("\t\t<content>" + rs.getString(4).replaceAll("&", "&amp;") + "</content>\n");
 			document.append("\t\t<URL>" + rs.getString(5) + "</URL>\n");
-			document.append("\t\t<duration>" + rs.getString(10) + " hours (" + rs.getString(11) + ")</duration>\n");
-			document.append("\t\t<mode>" + rs.getString(8) + "</mode>\n");
-			document.append("\t\t<min_qualification></min_qualification>\n");
-			document.append("\t\t<job_level></job_level>\n");
-			document.append("\t\t<institution></institution>\n");
-			document.append("\t\t<sector>" + rs.getString(7).replaceAll("&", "&amp;") + "</sector>\n");
-			document.append("\t\t<fee>$" + rs.getString(12) + "</fee>\n");
+			document.append("\t\t<duration_hours>" + rs.getString(6) + "</duration_hours>\n");
+			document.append("\t\t<duration_days>" + rs.getString(7) + "</duration_days>\n");
+			document.append("\t\t<full_fee>$" + rs.getString(8) + "</full_fee>\n");
+			document.append("\t\t<min_qualification>\n");
+			document.append("\t\t\t<code>" + rs.getString(9) + "</code>\n");
+			document.append("\t\t\t<name>" + rs.getString(10).replaceAll("&", "&amp;") + "</name>\n");
+			document.append("\t\t</min_qualification>\n");
 			cal.setTime(date);
 			idx1 = rn.nextInt(180);
 			cal.add(Calendar.DATE, -idx1);
@@ -260,13 +263,135 @@ public class SSOC {
 			cal.setTime(date);
 			cal.add(Calendar.DATE, idx1);
 			document.append("\t\t<closing_date>" + format.format(cal.getTime()) + "</closing_date>\n");
-			document.append("\t\t<Source>" + rs.getString(13) + "</Source>\n");
+			document.append("\t\t<Source>" + rs.getString(11) + "</Source>\n");
+			
+			query= "SELECT distinct mode_code, mode FROM courses.course_mode where course='" + rs.getString(1) + "'";
+			ResultSet rs2 = stmt.executeQuery(query);
+			for (; rs2.next();)
+			{
+				document.append("\t\t<mode>\n");
+				document.append("\t\t\t<code>" + rs2.getString(1) + "</code>\n");
+				document.append("\t\t\t<name>" + rs2.getString(2).replaceAll("&", "&amp;") + "</name>\n");
+				document.append("\t\t</mode>\n");
+			}	
+			
+			query= "SELECT distinct job_level_code, job_level FROM courses.course_job_level where course='" + rs.getString(1) + "'";
+			rs2 = stmt.executeQuery(query);
+			for (; rs2.next();)
+			{
+				document.append("\t\t<job_level>\n");
+				document.append("\t\t\t<code>" + rs2.getString(1) + "</code>\n");
+				document.append("\t\t\t<name>" + rs2.getString(2).replaceAll("&", "&amp;") + "</name>\n");
+				document.append("\t\t</job_level>\n");
+			}	
+			
+			query= "SELECT distinct area_code, area FROM courses.course_area where course='" + rs.getString(1) + "'";
+			rs2 = stmt.executeQuery(query);
+			for (; rs2.next();)
+			{
+				document.append("\t\t<training_area>\n");
+				document.append("\t\t\t<code>" + rs2.getString(1) + "</code>\n");
+				document.append("\t\t\t<name>" + rs2.getString(2).replaceAll("&", "&amp;") + "</name>\n");
+				document.append("\t\t</training_area>\n");
+			}	
+			
+			query= "SELECT distinct edu_code, education FROM courses.course_education where course='" + rs.getString(1) + "'";
+			rs2 = stmt.executeQuery(query);
+			for (; rs2.next();)
+			{
+				document.append("\t\t<target_aud_education>\n");
+				document.append("\t\t\t<code>" + rs2.getString(1) + "</code>\n");
+				document.append("\t\t\t<name>" + rs2.getString(2).replaceAll("&", "&amp;") + "</name>\n");
+				document.append("\t\t</target_aud_education>\n");
+			}	
+			
+			query= "SELECT distinct language, language FROM courses.course_language where course='" + rs.getString(1) + "'";
+			rs2 = stmt.executeQuery(query);
+			for (; rs2.next();)
+			{
+				document.append("\t\t<language>\n");
+				document.append("\t\t\t<code>" + rs2.getString(1) + "</code>\n");
+				document.append("\t\t\t<name>" + rs2.getString(2).replaceAll("&", "&amp;") + "</name>\n");
+				document.append("\t\t</language>\n");
+			}	
+			
+			query= "SELECT distinct code, provider FROM courses.course_provider where course='" + rs.getString(1) + "'";
+			rs2 = stmt.executeQuery(query);
+			for (; rs2.next();)
+			{
+				document.append("\t\t<provider>\n");
+				document.append("\t\t\t<code>" + rs2.getString(1) + "</code>\n");
+				document.append("\t\t\t<name>" + rs2.getString(2).replaceAll("&", "&amp;") + "</name>\n");
+				document.append("\t\t</provider>\n");
+			}	
+			
+			query= "SELECT distinct type, type FROM courses.course_type where course='" + rs.getString(1) + "'";
+			rs2 = stmt.executeQuery(query);
+			for (; rs2.next();)
+			{
+				document.append("\t\t<type>\n");
+				document.append("\t\t\t<code>" + rs2.getString(1) + "</code>\n");
+				document.append("\t\t\t<name>" + rs2.getString(2).replaceAll("&", "&amp;") + "</name>\n");
+				document.append("\t\t</type>\n");
+			}	
+			
+			document.append("\t\t<enriched_content>\n");
+			query= "SELECT distinct skill_code, level, case level when 1 then 'A' when 2 then 'B' when 3 then 'C' when 4 then 'D'"
+				+ " when 5 then 'E' when 6 then 'F' else '' end FROM ssoc_subset.course_tech_skills "
+				+ "where course_code='" + rs.getString(1) + "'";
+			//System.out.println( query);
+			rs2 = stmt.executeQuery(query);
+			for (; rs2.next();)
+			{
+				document.append("\t\t\t<WCC_COMPETENCY>skill-courses;" + rs2.getString(1) + ";" + rs2.getString(3) + "</WCC_COMPETENCY>\n");
+			}	
+			
+
+			query= "SELECT distinct occup_code1, level, case level when 1 then 'A' when 2 then 'B' when 3 then 'C' when 4 then 'D'"
+				+ " when 5 then 'E' when 6 then 'F' else '' end FROM ssoc_subset.occup_tech_skills "
+				+ "where skill_id in (select skill_code from ssoc_subset.course_tech_skills where course_code='" + rs.getString(1) + "')"
+				+ "union "
+				+ "SELECT distinct occup_code2, level, case level when 1 then 'A' when 2 then 'B' when 3 then 'C' when 4 then 'D'"
+				+ " when 5 then 'E' when 6 then 'F' else '' end FROM ssoc_subset.occup_tech_skills "
+				+ "where skill_id in (select skill_code from ssoc_subset.course_tech_skills where course_code='" + rs.getString(1) + "')"
+				+ "union "
+				+ "SELECT distinct occup_code3, level, case level when 1 then 'A' when 2 then 'B' when 3 then 'C' when 4 then 'D'"
+				+ " when 5 then 'E' when 6 then 'F' else '' end FROM ssoc_subset.occup_tech_skills "
+				+ "where skill_id in (select skill_code from ssoc_subset.course_tech_skills where course_code='" + rs.getString(1) + "')"
+				+ "union "
+				+ "SELECT distinct occup_code4, level, case level when 1 then 'A' when 2 then 'B' when 3 then 'C' when 4 then 'D'"
+				+ " when 5 then 'E' when 6 then 'F' else '' end FROM ssoc_subset.occup_tech_skills "
+				+ "where skill_id in (select skill_code from ssoc_subset.course_tech_skills where course_code='" + rs.getString(1) + "')"
+				;
+			//System.out.println( query);
+			rs2 = stmt.executeQuery(query);
+			for (; rs2.next();)
+			{
+				document.append("\t\t\t<WCC_OCCUPATION>occupation-courses;" + rs2.getString(1) + ";" + rs2.getString(3) + "</WCC_OCCUPATION>\n");
+			}	
+			
+
+			query= "SELECT distinct type, type FROM courses.course_type where course='" + rs.getString(1) + "'";
+			rs2 = stmt.executeQuery(query);
+			for (; rs2.next();)
+			{
+				document.append("\t\t<type>\n");
+				document.append("\t\t\t<code>" + rs2.getString(1) + "</code>\n");
+				document.append("\t\t\t<name>" + rs2.getString(2).replaceAll("&", "&amp;") + "</name>\n");
+				document.append("\t\t</type>\n");
+			}	
+			
+			document.append("\t\t</enriched_content>\n");
+			document.append("\t\t<Actonomy>\n\t\t\t<Domain>\n\t\t\t\t<DomainName/>\n\t\t\t</Domain>\n");
+			document.append("\t\t\t<Sector>\n\t\t\t\t<SectorName/>\n\t\t\t</Sector>\n\t\t</Actonomy>\n");
 
 			document.append("\t</Training>\n");
 			writer.write(document.toString());
 			writer.close();
 
 		}
+			//rs2.close();
+		//rs.close();
 		stmt.close();
 		conn.close();
 

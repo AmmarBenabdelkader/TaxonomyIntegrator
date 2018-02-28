@@ -176,7 +176,7 @@ public class CVparser
 			        System.out.print(i + " " + filename);
 			        
 			        
-					enrichCV(path ,filename);
+			        enrichCV(path ,filename);
 			        System.out.println("\tenriched in: " + + (new Date().getTime() - date.getTime())/1000 + "s");
 			      }
 			    }
@@ -343,12 +343,14 @@ public class CVparser
 	}
 
 
+
 	/* Reads the job titles from a taxonomy and mapps them to ontology functions/function_groups */
 	public static String getCode(String title) throws SQLException, ClassNotFoundException
 	{
 			try
 			{
-			URL url = new URL("http://demos.savannah.wcc.nl:14080/semanticsearch/v1/occupationtitles/text?text=" + title.replaceAll(" ", "%20").trim() + "&sort=sort");
+				//URL url = new URL("http://demos.savannah.wcc.nl:14080/semanticsearch/v1/occupationtitles/text?text=" + title.replaceAll(" ", "%20").trim() + "&sort=sort");
+				URL url = new URL("http://10.43.2.183:14080/semanticsearch/v1/occupationtitles/text?text=" + title.replaceAll(" ", "%20").trim() + "&sort=sort");
 			URLConnection yc = url.openConnection();
 			BufferedReader in;
 				in = new BufferedReader(new InputStreamReader(
@@ -359,8 +361,8 @@ public class CVparser
 			while ((line = in.readLine()) != null) {
 				if (line.contains("\"id\" :")){
 					code = line.substring(12, line.length()-2);
-					//code1 += "id=\"" + line.substring(12, line.length()-2) + "\"";
-					enrich = getEnrichment(line.substring(12, line.length()-2));
+					//enrich = getEnrichment_v1(line.substring(12, line.length()-2));
+					enrich = getEnrichment_v2(line.substring(12, line.length()-2));
 					line = in.readLine();
 				if (line.contains("\"name\" :"))
 					occupation = line.substring(14, line.length()-2).replaceAll("&", "&amp;");
@@ -389,7 +391,7 @@ public class CVparser
 	}
 
 
-	public static String getEnrichment(String code) throws SQLException, ClassNotFoundException
+	public static String getEnrichment_v1(String code) throws SQLException, ClassNotFoundException
 	{
 		String content="\t\t<enriched_content>\n";
 		String query = "SELECT distinct ssoc_code, skill, type,relationshipType FROM lssoc.occupation_skills_esco "
@@ -398,6 +400,83 @@ public class CVparser
 		ResultSet rs=stmt.executeQuery(query);
 		while (rs.next()) {
 			content += "\t\t<wcc_competency>esco_skills;" + rs.getString(2) + ";occupation-" + rs.getString(4) + "-" + rs.getString(3) + "</wcc_competency>\n";
+						
+		}
+
+		query = "SELECT convert(((jz*20)+(" + workexp + "*9.09)+(eljb*16.66))/3/20, unsigned int) FROM lssoc.occupation_skill_level where code='" + code.substring(0, 4) + "'"; 
+		//System.out.println(query);
+		rs=stmt.executeQuery(query);
+		if (rs.next()) 
+			content += "\t\t<wcc_competency_level>" + rs.getString(1) + "</wcc_competency_level>\n";
+
+		query = "SELECT riasec FROM lssoc.occupation_interest_group where code='" + code.substring(0, 4) + "'"; 
+		rs=stmt.executeQuery(query);
+		if (rs.next()) 
+			content += "\t\t<wcc_interest_raisec>" + rs.getString(1) + "</wcc_interest_raisec>\n";
+
+		
+		query = "SELECT distinct b.ssoc_code, concat(element_id,'.', category) education, CONVERT(avg(data_value),UNSIGNED INTEGER) score "
+			+ "FROM onet.education_training_experience a, lssoc.ssoc2015_onet2015 b "
+			+ "where a.onetsoc_code=b.onet_code_2015 and scale_id='RL' and data_value>1.5 "
+			+ "and b.ssoc_code='" + code.substring(0, 4) + "' "
+			+ "group by b.ssoc_code, element_id, category order by b.ssoc_code, score desc";
+		//System.out.println(query);
+		rs=stmt.executeQuery(query);
+		while (rs.next()) {
+			content += "\t\t<wcc_education>education_training_experience;" + rs.getString(2) + ";occupation-education</wcc_education>\n";
+			//content += "\t\t<wcc_education>education_training_experience;occupation-education;" + rs.getString(2) + ";" + rs.getString(3) + "</wcc_education>\n";
+						
+		}
+
+
+		query = "SELECT 'interests;', element_id, CONVERT(avg(data_value/7*100),UNSIGNED INTEGER) score, ';occupational-interests'"
+			+ "FROM onet.interests a, lssoc.ssoc2015_onet2015 b where a.onetsoc_code=b.onet_code_2015 and scale_id='OI' "
+			+ "and b.ssoc_code='" + code.substring(0, 4) + "' "
+			+ "group by ssoc_code,element_id order by ssoc_code asc, score desc, element_id asc";
+		//System.out.println(query);
+		rs=stmt.executeQuery(query);
+		while (rs.next()) {
+			content += "\t\t<wcc_interest>" + rs.getString(1)  + rs.getString(2)  + rs.getString(4) + "</wcc_interest>\n";
+			//content += "\t\t<wcc_interest>" + rs.getString(1)  + rs.getString(2) + ";" + rs.getString(3) + "</wcc_interest>\n";
+						
+		}
+
+
+		query = "SELECT distinct 'interests;', a.element_id, CONVERT(avg(data_value/5*100),UNSIGNED INTEGER) score, ';occupation-work-context'"
+			+ "FROM onet.work_context a, lssoc.ssoc2015_onet2015 b where a.onetsoc_code=b.onet_code_2015 and scale_id='CX' and  data_value>=3 "
+			+ "and ssoc_code='" + code.substring(0, 4) + "' "
+			+ "group by ssoc_code,element_id order by ssoc_code asc, score desc, element_id asc";
+		//System.out.println(query);
+		rs=stmt.executeQuery(query);
+		while (rs.next()) {
+			content += "\t\t<wcc_work_condition>" + rs.getString(1)  + rs.getString(2) + rs.getString(4) + "</wcc_work_condition>\n";
+			//content += "\t\t<wcc_work_conditiont>" + rs.getString(1)  + rs.getString(2) + ";" + rs.getString(3) + "</wcc_work_conditiont>\n";
+						
+		}
+		content +="\t\t</enriched_content>\n";
+
+		return content;
+
+	}
+
+	public static String getEnrichment_v2(String code) throws SQLException, ClassNotFoundException
+	{
+		String content="\t\t<enriched_content>\n";
+		String query = "SELECT distinct ssoc_code, skill, case(skill_level) when 20 then 'A' when 40 then 'B' when 60 then 'C'  when 80 then 'D'  when 100 then 'E' else '' end FROM lssoc.occupation_skills_esco "
+			+ "where relationshipType='essential' and ssoc_code='" + code + "'"; //relationshipType='essential' and ;
+		//System.out.println(query);
+		ResultSet rs=stmt.executeQuery(query);
+		while (rs.next()) {
+			content += "\t\t<wcc_competency_essential>esco_skills;" + rs.getString(2) + ";" + rs.getString(3) + "</wcc_competency_essential>\n";
+						
+		}
+
+		query = "SELECT distinct ssoc_code, skill, case(skill_level) when 20 then 'A' when 40 then 'B' when 60 then 'C'  when 80 then 'D'  when 100 then 'E' else '' end  FROM lssoc.occupation_skills_esco "
+			+ "where ssoc_code='" + code + "'"; //relationshipType='essential' and ;
+		//System.out.println(query);
+		rs=stmt.executeQuery(query);
+		while (rs.next()) {
+			content += "\t\t<wcc_competency>esco_skills;" + rs.getString(2) + ";" + rs.getString(3) + "</wcc_competency>\n";
 						
 		}
 

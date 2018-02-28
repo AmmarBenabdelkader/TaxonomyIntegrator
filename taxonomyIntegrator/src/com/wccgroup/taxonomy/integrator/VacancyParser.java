@@ -143,6 +143,15 @@ public class VacancyParser
 							
 			}
 
+			query = "SELECT distinct ssoc_code, skill FROM lssoc.occupation_skills_esco "
+				+ "where relationshipType='essential' and ssoc_code='" + code + "'"; //relationshipType='essential' and ;
+			//System.out.println(query);
+			rs=stmt.executeQuery(query);
+			while (rs.next()) {
+				content += "\t\t<wcc_competency_essential>esco_skills;" + rs.getString(2) + ";occupation-" + rs.getString(4) + "-" + rs.getString(3) + "</wcc_competency_essential>\n";
+							
+			}
+
 			query = "SELECT distinct b.ssoc_code, concat(element_id,'.', category) education, CONVERT(avg(data_value),UNSIGNED INTEGER) score "
 				+ "FROM onet.education_training_experience a, lssoc.ssoc2015_onet2015 b "
 				+ "where a.onetsoc_code=b.onet_code_2015 and scale_id='RL' and data_value>1.5 "

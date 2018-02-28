@@ -2,3 +2,5 @@ eclipse.preferences.version=1
 encoding//src/com/wccgroup/taxonomy/integrator/CVparser.java=UTF-8
 encoding//src/com/wccgroup/taxonomy/integrator/OnetOccupationMapper.java=UTF-8
 encoding//src/com/wccgroup/taxonomy/integrator/VacancyParser.java=UTF-8
+encoding//src/com/wccgroup/taxonomy/mapper/converter_esco.java=UTF-8
+encoding//src/com/wccgroup/web/extrator/UtililiesESCO_v102.java=UTF-8
